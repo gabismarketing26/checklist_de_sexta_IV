@@ -34,7 +34,7 @@
 
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1150px;
       background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -62,13 +62,17 @@
     }
 
     /* Barra de Progresso */
-    .progress-container {
+    .progress-wrapper {
       margin: 20px 0;
+    }
+
+    .progress-container {
       background: #edf2f7;
       border-radius: 20px;
       height: 12px;
       overflow: hidden;
       position: relative;
+      margin-top: 6px;
     }
 
     .progress-bar {
@@ -83,7 +87,6 @@
       justify-content: space-between;
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-top: 4px;
       font-weight: 600;
     }
 
@@ -134,7 +137,7 @@
     }
 
     th, td {
-      padding: 12px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -176,6 +179,15 @@
       accent-color: var(--success);
     }
 
+    .badge-freq {
+      background: #edf2f7;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
     .badge-time {
       background: #e2e8f0;
       padding: 4px 8px;
@@ -206,13 +218,13 @@
 <div class="container">
   <header>
     <h1>📋 CHECKLIST: Clientes do Fim de Semana</h1>
-    <p class="subtitle">Prioridades para conferência e agendamento na sexta-feira (Sexta a Segunda)</p>
+    <p class="subtitle">Prioridades de verificação para o checklist de sexta-feira (Sexta a Segunda)</p>
   </header>
 
   <!-- Barra de Progresso -->
   <div class="progress-wrapper">
     <div class="progress-stats">
-      <span>Progresso do Checklist</span>
+      <span>Progresso do Agendamento</span>
       <span id="progress-text">0 de 0 concluídos (0%)</span>
     </div>
     <div class="progress-container">
@@ -236,6 +248,7 @@
         <tr>
           <th class="checkbox-cell">Status</th>
           <th>Cliente</th>
+          <th>Frequência</th>
           <th>Dias de Postagem</th>
           <th>Horário</th>
           <th>Orientação de Capa</th>
@@ -249,30 +262,59 @@
 </div>
 
 <script>
-  // Dados Mapeados
-  const clientes = [
-    { nome: "Amanda Barcelos", dias: "Sex, Sáb, Seg", horario: "09:00", capa: "Print do vídeo (exceto se houver capa enviada)" },
-    { nome: "Aline Guedes", dias: "Sex", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Beatriz Pelli", dias: "Sex, Seg", horario: "09:00", capa: "—" },
-    { nome: "Carmen Vera", dias: "Todos os dias (Sex a Seg)", horario: "12:00 e 18:00", capa: "Print do próprio vídeo" },
-    { nome: "Dani Leite", dias: "Todos os dias (Sex a Seg)", horario: "17:00", capa: "Capinha obrigatória (já subida pelo editor)" },
-    { nome: "Dra Luciana / Sisters", dias: "Sex, Seg", horario: "09:00", capa: "Capinha com texto (feita pela designer)" },
-    { nome: "Fiamma", dias: "Todos os dias (Sex a Seg)", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Isabela Clerot", dias: "Sex, Seg", horario: "07:00", capa: "Print do próprio vídeo" },
-    { nome: "Jéssica Penaforte", dias: "Sex, Sáb (leve), Seg", horario: "17:00", capa: "Capinha com texto (exceto vídeos de lifestyle)" },
-    { nome: "Juh Araújo", dias: "Qui a Sáb (Sex e Sáb)", horario: "18:00", capa: "Capinha sem texto (editor pega)" },
-    { nome: "Kalessandra Castro", dias: "Sex, Seg", horario: "09:00", capa: "—" },
-    { nome: "Marina Vicente", dias: "Sex, Sáb, Seg", horario: "09:00", capa: "Capinha/print. Sem carinha, sempre com headline" },
-    { nome: "Márcia Campos", dias: "Todos os dias (Sex a Seg)", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Patrícia Domingos", dias: "Todos os dias (inclui Dom)", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Nicolas Charão", dias: "Todos os dias (+1/dia)", horario: "12:00 e 18:00", capa: "Conteúdos com capinha ou print do vídeo" },
-    { nome: "Pedro Coelho", dias: "Sex, Seg", horario: "08:00", capa: "Print do próprio vídeo" },
-    { nome: "Raiane", dias: "Todos os dias (Sex a Seg)", horario: "17:40", capa: "Print do próprio vídeo" },
-    { nome: "Raquel Conde", dias: "Sex, Seg", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Rebeca Louise", dias: "Sex, Seg", horario: "09:00", capa: "Capinha" },
-    { nome: "Tati Gastão", dias: "Sex, Seg", horario: "09:00", capa: "Print do próprio vídeo" },
-    { nome: "Jin Park", dias: "Sex, Seg", horario: "09:00", capa: "Print do vídeo (orientação mudará em breve)" }
+  // Mapeamento Completo de Clientes
+  const todosClientes = [
+    { nome: "Amanda Barcelos", frequencia: "4 por semana", dias: "Seg, Qua, Sex, Sáb", horario: "09:00", capa: "Print do próprio vídeo, exceto quando já houver capa enviada" },
+    { nome: "Aline Guedes", frequencia: "4 por semana", dias: "Ter, Qua, Qui, Sex", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Beatriz Pelli", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "—" },
+    { nome: "Carmen Vera", frequencia: "14 por semana", dias: "Todos os dias", horario: "12:00 e 18:00", capa: "Print do próprio vídeo" },
+    { nome: "Dani Leite", frequencia: "Todos os dias", dias: "Todos os dias", horario: "17:00", capa: "Capinha obrigatória, já subida pelo editor" },
+    { nome: "Dra Luciana / Sisters", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "Capinha com texto, feita pela designer" },
+    { nome: "Fiamma", frequencia: "Todos os dias", dias: "Todos os dias", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Dra Tamiris Marques", frequencia: "5 por semana", dias: "—", horario: "09:00", capa: "Capinha com texto, feita pela designer ou editor" },
+    { nome: "Isadora Vaz", frequencia: "Sem definição", dias: "—", horario: "—", capa: "Capinha" },
+    { nome: "Isabela Clerot", frequencia: "5 por semana", dias: "Seg a Sex", horario: "07:00", capa: "Print do próprio vídeo" },
+    { nome: "Jéssica Penaforte", frequencia: "3 por semana", dias: "Seg, Qua, Sex (+ Sáb leve)", horario: "17:00", capa: "Capinha com texto (exceto vídeos de lifestyle)" },
+    { nome: "Juh Araújo", frequencia: "5 por semana", dias: "Seg, Ter, Qua, Qui, Sáb", horario: "18:00", capa: "Capinha sem texto, o editor pega" },
+    { nome: "Kalessandra Castro", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "—" },
+    { nome: "Maria Petry", frequencia: "6 por semana", dias: "6 na semana (1 dia livre)", horario: "09:00", capa: "Capinha com texto, o editor pega" },
+    { nome: "Marina Vicente", frequencia: "4 por semana", dias: "Seg, Qua, Sex, Sáb", horario: "09:00", capa: "Capinha/print. Sempre com headline" },
+    { nome: "Márcia Campos", frequencia: "Todos os dias", dias: "Todos os dias", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Suzi Nutrição", frequencia: "Sem definição", dias: "—", horario: "—", capa: "—" },
+    { nome: "Patrícia Domingos", frequencia: "Todos os dias", dias: "Todos os dias (inclui domingo)", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Nicolas Charão", frequencia: "9 por semana", dias: "Todos os dias (mais de 1/dia)", horario: "12:00 e 18:00", capa: "Capinha ou print do próprio vídeo" },
+    { nome: "Pedro Coelho", frequencia: "3 por semana", dias: "Seg, Qua, Sex", horario: "08:00", capa: "Print do próprio vídeo" },
+    { nome: "Raiane", frequencia: "Todos os dias", dias: "Todos os dias", horario: "17:40", capa: "Print do próprio vídeo" },
+    { nome: "Raquel Conde", frequencia: "3 por semana", dias: "Seg, Qua, Sex", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Rebeca Louise", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "Capinha" },
+    { nome: "Rodrigo Comunian", frequencia: "Todos os dias", dias: "—", horario: "11:00", capa: "—" },
+    { nome: "Tati Gastão", frequencia: "4 por semana", dias: "Seg/Ter a Sex", horario: "09:00", capa: "Print do próprio vídeo" },
+    { nome: "Jin Park", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "Print do vídeo" }
   ];
+
+  // Lógica de Filtro Inicial: Selecionar apenas quem atende os critérios de Sex a Seg
+  function ehPrioridadeFimDeSemana(cliente) {
+    const dias = cliente.dias.toLowerCase();
+    const freq = cliente.frequencia.toLowerCase();
+
+    // Palavras-chave dos dias de interesse
+    const temDiaRelevante = ["sex", "sáb", "sab", "dom", "seg", "todos os dias", "seg a sex", "seg/ter a sex", "6 na semana"].some(d => dias.includes(d));
+
+    // Se a coluna Dias tiver especificação e ela for relevante
+    if (dias !== "—" && dias !== "") {
+      return temDiaRelevante;
+    }
+
+    // Se a coluna Dias NÃO tiver especificação ("—"), avalia a Frequência
+    if (freq.includes("todos os dias") || freq.includes("6 por semana") || freq.includes("5 por semana")) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Filtrar Lista Inicial
+  let clientesPrioridade = todosClientes.filter(ehPrioridadeFimDeSemana);
 
   const tbody = document.getElementById('checklist-body');
   const searchInput = document.getElementById('search');
@@ -288,7 +330,8 @@
           <input type="checkbox" onchange="toggleCheck(${index})" id="check-${index}">
         </td>
         <td><strong>${cliente.nome}</strong></td>
-        <td><span class="badge-days">${cliente.dias}</span></td>
+        <td><span class="badge-freq">${cliente.frequencia}</span></td>
+        <td><span class="badge-days">${cliente.dias !== '—' ? cliente.dias : '<em>Verificar Frequência</em>'}</span></td>
         <td><span class="badge-time">${cliente.horario}</span></td>
         <td class="capa-info">${cliente.capa}</td>
       `;
@@ -323,29 +366,37 @@
   // Filtro de Busca por Nome
   searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    const filtered = clientes.filter(c => c.nome.toLowerCase().includes(term));
+    const filtered = clientesPrioridade.filter(c => c.nome.toLowerCase().includes(term));
     renderTable(filtered);
   });
 
   // Filtros Rápidos por Dia
   function filterTable(day) {
-    // Atualizar classe ativa nos botões
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 
     if (day === 'all') {
-      renderTable(clientes);
+      renderTable(clientesPrioridade);
     } else {
-      const filtered = clientes.filter(c => 
-        c.dias.toLowerCase().includes(day.toLowerCase()) || 
-        c.dias.toLowerCase().includes('todos')
-      );
+      const filtered = clientesPrioridade.filter(c => {
+        const dias = c.dias.toLowerCase();
+        const freq = c.frequencia.toLowerCase();
+        
+        if (dias === '—') {
+          return freq.includes('todos os dias') || freq.includes('5 por semana') || freq.includes('6 por semana');
+        }
+        
+        return dias.includes(day.toLowerCase()) || 
+               dias.includes('todos') || 
+               (day === 'Seg' && (dias.includes('seg a sex') || dias.includes('seg/ter a sex'))) ||
+               (day === 'Sex' && (dias.includes('seg a sex') || dias.includes('seg/ter a sex')));
+      });
       renderTable(filtered);
     }
   }
 
   // Inicialização
-  renderTable(clientes);
+  renderTable(clientesPrioridade);
 </script>
 
 </body>
