@@ -34,7 +34,7 @@
 
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1350px;
       background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -149,6 +149,27 @@
       font-size: 0.9rem;
     }
 
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .export-btn {
+      padding: 9px 16px;
+      background-color: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .export-btn:hover {
+      background-color: #2c5282;
+    }
+
     .reset-btn {
       padding: 9px 16px;
       background-color: #fff5f5;
@@ -177,7 +198,7 @@
     }
 
     th, td {
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -185,7 +206,7 @@
       background-color: #f8fafc;
       color: var(--text-main);
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -196,15 +217,7 @@
 
     tr.completed {
       background-color: #f0fff4;
-      opacity: 0.65;
-    }
-
-    tr.completed td {
-      text-decoration: line-through;
-    }
-
-    tr.completed td:first-child {
-      text-decoration: none;
+      opacity: 0.75;
     }
 
     .checkbox-cell {
@@ -221,30 +234,52 @@
 
     .badge-freq {
       background: #edf2f7;
-      padding: 3px 8px;
+      padding: 3px 6px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
       font-weight: 500;
     }
 
     .badge-time {
       background: #e2e8f0;
-      padding: 4px 8px;
+      padding: 4px 6px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
     }
 
     .badge-days {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--primary);
     }
 
     .capa-info {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
+      max-width: 200px;
+    }
+
+    /* Select e Input de Justificativa */
+    .status-select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      font-weight: 600;
+      background-color: white;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .input-justificativa {
+      width: 100%;
+      min-width: 160px;
+      padding: 6px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.8rem;
     }
 
     .empty-msg {
@@ -256,8 +291,9 @@
 
     @media (max-width: 768px) {
       .container { padding: 16px; }
-      th, td { padding: 10px; font-size: 0.85rem; }
+      th, td { padding: 8px; font-size: 0.8rem; }
       .action-bar { flex-direction: column; align-items: stretch; }
+      .btn-group { flex-direction: column; }
     }
   </style>
 </head>
@@ -266,7 +302,7 @@
 <div class="container">
   <header>
     <h1>📋 CHECKLIST: Clientes do Fim de Semana</h1>
-    <p class="subtitle">Gerenciamento dinâmico de postagens por dia da semana e progresso individual</p>
+    <p class="subtitle">Gerenciamento dinâmico de postagens por dia com status de verificação e relatório</p>
   </header>
 
   <!-- Filtros de Dias da Semana -->
@@ -282,10 +318,10 @@
     <button class="filter-btn" onclick="setDayFilter('Dom', this)">Domingo</button>
   </div>
 
-  <!-- Barra de Progresso da Visualização Atual -->
+  <!-- Barra de Progresso -->
   <div class="progress-wrapper">
     <div class="progress-stats">
-      <span id="progress-title">Progresso da Visualização (Todos os Clientes)</span>
+      <span id="progress-title">Progresso da Visualização</span>
       <span id="progress-text">0 de 0 concluídos (0%)</span>
     </div>
     <div class="progress-container">
@@ -296,7 +332,10 @@
   <!-- Barra de Ações e Busca -->
   <div class="action-bar">
     <input type="text" id="search" class="search-box" placeholder="Buscar cliente por nome...">
-    <button class="reset-btn" onclick="clearCurrentChecklist()">🔄 Limpar Checks Desta Visualização</button>
+    <div class="btn-group">
+      <button class="export-btn" onclick="exportToCSV()">📥 Exportar Planilha (CSV / Drive)</button>
+      <button class="reset-btn" onclick="clearCurrentChecklist()">🔄 Limpar Checks Desta Visualização</button>
+    </div>
   </div>
 
   <!-- Tabela -->
@@ -307,20 +346,21 @@
           <th class="checkbox-cell">Check</th>
           <th>Cliente</th>
           <th>Frequência</th>
+          <th>Status de Verificação</th>
+          <th>Justificativa / Observação</th>
           <th>Dias Programados</th>
           <th>Horário</th>
           <th>Orientação de Capa</th>
         </tr>
       </thead>
       <tbody id="checklist-body">
-        <!-- Preenchido dinamicamente pelo JS -->
+        <!-- Preenchido via JS -->
       </tbody>
     </table>
   </div>
 </div>
 
 <script>
-  // Mapeamento Completo da Base de Dados
   const todosClientes = [
     { id: 1, nome: "Amanda Barcelos", frequencia: "4 por semana", dias: "Seg, Qua, Sex, Sáb", horario: "09:00", capa: "Print do próprio vídeo, exceto quando já houver capa enviada" },
     { id: 2, nome: "Aline Guedes", frequencia: "4 por semana", dias: "Ter, Qua, Qui, Sex", horario: "09:00", capa: "Print do próprio vídeo" },
@@ -350,14 +390,13 @@
     { id: 26, nome: "Jin Park", frequencia: "5 por semana", dias: "Seg a Sex", horario: "09:00", capa: "Print do vídeo" }
   ];
 
-  // Armazenador de Estados dos Checks para cada Filtro de Dia
-  // Estrutura: { 'all': { id1: true, id2: false }, 'Sex': { id1: true }, ... }
+  // Estrutura de Estados
+  // checkStates[filtro][clienteId] = { checked: true/false, status: '...', justificativa: '...' }
   const checkStates = {};
 
   let currentFilter = 'all';
   let currentSearch = '';
 
-  // Nomes amigáveis dos filtros para o título do progresso
   const nombresFiltros = {
     'all': 'Todos os Clientes',
     'fim-de-semana': 'Fim de Semana (Sexta a Segunda)',
@@ -370,24 +409,20 @@
     'Dom': 'Domingo'
   };
 
-  // Avalia se o cliente deve aparecer no dia/filtro ativo
   function clientePertenceAoFiltro(cliente, filtro) {
     if (filtro === 'all') return true;
 
     const dias = cliente.dias.toLowerCase();
     const freq = cliente.frequencia.toLowerCase();
 
-    // Filtro especial de Fim de Semana
     if (filtro === 'fim-de-semana') {
       const temDiaFDS = ["sex", "sáb", "sab", "dom", "seg", "todos os dias", "seg a sex", "seg/ter a sex", "6 na semana"].some(d => dias.includes(d));
       if (dias !== "—" && dias !== "") return temDiaFDS;
       return freq.includes("todos os dias") || freq.includes("6 por semana") || freq.includes("5 por semana");
     }
 
-    // Filtros por dias individuais
     const f = filtro.toLowerCase();
 
-    // Se dias for nulo ("—"), considera a frequência de produção diária/útil
     if (dias === '—') {
       if (freq.includes("todos os dias")) return true;
       if ((f === 'seg' || f === 'ter' || f === 'qua' || f === 'qui' || f === 'sex') && freq.includes("5 por semana")) return true;
@@ -395,12 +430,10 @@
       return false;
     }
 
-    // Checagem direta na string dos dias
     if (dias.includes("todos os dias")) return true;
     if (dias.includes(f)) return true;
     if (f === 'sáb' && dias.includes('sab')) return true;
 
-    // Intervalos como "Seg a Sex" ou "Seg/Ter a Sex"
     if (dias.includes("seg a sex") || dias.includes("seg/ter a sex")) {
       return ['seg', 'ter', 'qua', 'qui', 'sex'].includes(f);
     }
@@ -410,45 +443,55 @@
     return false;
   }
 
-  // Renderizar Tabela
+  function getClienteState(clienteId) {
+    if (!checkStates[currentFilter]) {
+      checkStates[currentFilter] = {};
+    }
+    if (!checkStates[currentFilter][clienteId]) {
+      checkStates[currentFilter][clienteId] = { checked: false, status: 'OK / Concluído', justificativa: '' };
+    }
+    return checkStates[currentFilter][clienteId];
+  }
+
   function renderTable() {
     const tbody = document.getElementById('checklist-body');
     tbody.innerHTML = '';
 
-    // Filtrar dados
     const clientesFiltrados = todosClientes.filter(c => {
-      const bateFiltro = clientePertenceAoFiltro(c, currentFilter);
-      const bateBusca = c.nome.toLowerCase().includes(currentSearch.toLowerCase());
-      return bateFiltro && bateBusca;
+      return clientePertenceAoFiltro(c, currentFilter) && c.nome.toLowerCase().includes(currentSearch.toLowerCase());
     });
 
     if (clientesFiltrados.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">Nenhum cliente encontrado para este dia ou busca.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-msg">Nenhum cliente encontrado para este dia ou busca.</td></tr>`;
       updateProgress(0, 0);
       return;
-    }
-
-    // Garantir estrutura de estados do filtro atual
-    if (!checkStates[currentFilter]) {
-      checkStates[currentFilter] = {};
     }
 
     let checkedCount = 0;
 
     clientesFiltrados.forEach((cliente) => {
-      const isChecked = !!checkStates[currentFilter][cliente.id];
-      if (isChecked) checkedCount++;
+      const state = getClienteState(cliente.id);
+      if (state.checked) checkedCount++;
 
       const row = document.createElement('tr');
-      row.className = isChecked ? 'completed' : '';
+      row.className = state.checked ? 'completed' : '';
       row.innerHTML = `
         <td class="checkbox-cell">
-          <input type="checkbox" 
-                 ${isChecked ? 'checked' : ''} 
-                 onchange="toggleCheck(${cliente.id}, this)">
+          <input type="checkbox" ${state.checked ? 'checked' : ''} onchange="toggleCheck(${cliente.id}, this)">
         </td>
         <td><strong>${cliente.nome}</strong></td>
         <td><span class="badge-freq">${cliente.frequencia}</span></td>
+        <td>
+          <select class="status-select" onchange="updateStatus(${cliente.id}, this.value)">
+            <option value="OK / Concluído" ${state.status === 'OK / Concluído' ? 'selected' : ''}>OK / Concluído</option>
+            <option value="Ag. aprovação (cliente)" ${state.status === 'Ag. aprovação (cliente)' ? 'selected' : ''}>Ag. aprovação (cliente)</option>
+            <option value="Ag. aprovação (IV)" ${state.status === 'Ag. aprovação (IV)' ? 'selected' : ''}>Ag. aprovação (IV)</option>
+            <option value="Em ajuste" ${state.status === 'Em ajuste' ? 'selected' : ''}>Em ajuste</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="input-justificativa" placeholder="Situação/justificativa..." value="${state.justificativa}" onchange="updateJustificativa(${cliente.id}, this.value)">
+        </td>
         <td><span class="badge-days">${cliente.dias !== '—' ? cliente.dias : '<em>Verificar Frequência</em>'}</span></td>
         <td><span class="badge-time">${cliente.horario}</span></td>
         <td class="capa-info">${cliente.capa}</td>
@@ -459,17 +502,22 @@
     updateProgress(checkedCount, clientesFiltrados.length);
   }
 
-  // Marcar/Desmarcar CheckBox
   function toggleCheck(clienteId, checkboxElement) {
-    if (!checkStates[currentFilter]) {
-      checkStates[currentFilter] = {};
-    }
-
-    checkStates[currentFilter][clienteId] = checkboxElement.checked;
+    const state = getClienteState(clienteId);
+    state.checked = checkboxElement.checked;
     renderTable();
   }
 
-  // Atualizar Progresso Visual
+  function updateStatus(clienteId, newStatus) {
+    const state = getClienteState(clienteId);
+    state.status = newStatus;
+  }
+
+  function updateJustificativa(clienteId, text) {
+    const state = getClienteState(clienteId);
+    state.justificativa = text;
+  }
+
   function updateProgress(checked, total) {
     const percentage = total === 0 ? 0 : Math.round((checked / total) * 100);
     document.getElementById('progress-bar').style.width = `${percentage}%`;
@@ -477,31 +525,61 @@
     document.getElementById('progress-title').innerText = `Progresso: ${nombresFiltros[currentFilter] || 'Dia Selecionado'}`;
   }
 
-  // Alterar Filtro de Dia
   function setDayFilter(filtro, element) {
     currentFilter = filtro;
-
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     element.classList.add('active');
-
     renderTable();
   }
 
-  // Limpar Checks da Visualização Ativa
   function clearCurrentChecklist() {
-    if (confirm(`Tem certeza de que deseja limpar os checks do dia "${nombresFiltros[currentFilter]}"?`)) {
+    if (confirm(`Tem certeza de que deseja limpar os checks e status do dia "${nombresFiltros[currentFilter]}"?`)) {
       checkStates[currentFilter] = {};
       renderTable();
     }
   }
 
-  // Event Listener para Busca em Tempo Real
+  // Função para Exportar CSV
+  function exportToCSV() {
+    const clientesFiltrados = todosClientes.filter(c => clientePertenceAoFiltro(c, currentFilter));
+    
+    if (clientesFiltrados.length === 0) {
+      alert("Não há dados para exportar nesta visualização.");
+      return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "Cliente;Frequencia;Status de Verificacao;Justificativa / Situacao;Dias Programados;Horario;Concluido (Check)\n";
+
+    clientesFiltrados.forEach(c => {
+      const state = getClienteState(c.id);
+      const row = [
+        `"${c.nome}"`,
+        `"${c.frequencia}"`,
+        `"${state.status}"`,
+        `"${state.justificativa.replace(/"/g, '""')}"`,
+        `"${c.dias}"`,
+        `"${c.horario}"`,
+        state.checked ? "SIM" : "NAO"
+      ].join(";");
+      csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    const dataAtual = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Checklist_${currentFilter}_${dataAtual}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   document.getElementById('search').addEventListener('input', (e) => {
     currentSearch = e.target.value;
     renderTable();
   });
 
-  // Inicialização
   renderTable();
 </script>
 
